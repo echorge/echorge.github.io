@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL 编码/解码工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .tool-section {
+            margin-bottom: 40px;
+        }
+
+        .tool-title {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .output-label {
+            color: #555;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .output {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+            min-height: 50px;
+            max-height: 200px;
+            overflow-y: auto;
+            color: #333;
+        }
+
+        .output:empty {
+            color: #aaa;
+        }
+
+        .output:empty::before {
+            content: '输出将在此显示...';
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab-btn {
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 URL 编码/解码工具</h1>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="component">组件方式</button>
+            <button class="tab-btn" data-tab="full">完整URL方式</button>
+        </div>
+
+        <!-- 组件编码解码 -->
+        <div id="component" class="tab-content active">
+            <div class="tool-section">
+                <div class="tool-title">编码字符串组件</div>
+                <div class="form-group">
+                    <label for="encode-input">输入要编码的文本:</label>
+                    <textarea id="encode-input" placeholder="例如: hello world & 特殊符号"></textarea>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="encodeComponent()">编码</button>
+                    <button class="btn-secondary" onclick="clearEncode()">清空</button>
+                </div>
+                <div class="output-label">编码结果:</div>
+                <div id="encode-output" class="output"></div>
+                <div id="encode-message" class="message"></div>
+            </div>
+
+            <div class="tool-section">
+                <div class="tool-title">解码字符串组件</div>
+                <div class="form-group">
+                    <label for="decode-input">输入要解码的文本:</label>
+                    <textarea id="decode-input" placeholder="例如: hello%20world%20%26%20%E7%89%B9%E6%AE%8A%E7%AC%A6%E5%8F%B7"></textarea>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="decodeComponent()">解码</button>
+                    <button class="btn-secondary" onclick="clearDecode()">清空</button>
+                </div>
+                <div class="output-label">解码结果:</div>
+                <div id="decode-output" class="output"></div>
+                <div id="decode-message" class="message"></div>
+            </div>
+        </div>
+
+        <!-- 完整URL编码解码 -->
+        <div id="full" class="tab-content">
+            <div class="tool-section">
+                <div class="tool-title">编码完整URL</div>
+                <div class="form-group">
+                    <label for="encode-url-input">输入要编码的URL:</label>
+                    <textarea id="encode-url-input" placeholder="例如: https://example.com/path?q=hello world"></textarea>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="encodeURL()">编码URL</button>
+                    <button class="btn-secondary" onclick="clearEncodeURL()">清空</button>
+                </div>
+                <div class="output-label">编码结果:</div>
+                <div id="encode-url-output" class="output"></div>
+                <div id="encode-url-message" class="message"></div>
+            </div>
+
+            <div class="tool-section">
+                <div class="tool-title">解码完整URL</div>
+                <div class="form-group">
+                    <label for="decode-url-input">输入要解码的URL:</label>
+                    <textarea id="decode-url-input" placeholder="例如: https://example.com/path?q=hello%20world"></textarea>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="decodeURL()">解码URL</button>
+                    <button class="btn-secondary" onclick="clearDecodeURL()">清空</button>
+                </div>
+                <div class="output-label">解码结果:</div>
+                <div id="decode-url-output" class="output"></div>
+                <div id="decode-url-message" class="message"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../urlCodec.js"></script>
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabName = this.dataset.tab;
+                
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                this.classList.add('active');
+                document.getElementById(tabName).classList.add('active');
+            });
+        });
+
+        // Component encoding
+        function encodeComponent() {
+            const input = document.getElementById('encode-input').value;
+            const output = document.getElementById('encode-output');
+            const message = document.getElementById('encode-message');
+
+            if (!input) {
+                showMessage(message, '请输入要编码的文本', 'error');
+                output.textContent = '';
+                return;
+            }
+
+            try {
+                const result = urlCodec.encode(input);
+                output.textContent = result;
+                showMessage(message, '编码成功！已复制到剪贴板', 'success');
+                navigator.clipboard.writeText(result);
+            } catch (e) {
+                showMessage(message, '编码失败: ' + e.message, 'error');
+                output.textContent = '';
+            }
+        }
+
+        function clearEncode() {
+            document.getElementById('encode-input').value = '';
+            document.getElementById('encode-output').textContent = '';
+            document.getElementById('encode-message').classList.remove('show');
+        }
+
+        // Component decoding
+        function decodeComponent() {
+            const input = document.getElementById('decode-input').value;
+            const output = document.getElementById('decode-output');
+            const message = document.getElementById('decode-message');
+
+            if (!input) {
+                showMessage(message, '请输入要解码的文本', 'error');
+                output.textContent = '';
+                return;
+            }
+
+            try {
+                const result = urlCodec.decode(input);
+                output.textContent = result;
+                showMessage(message, '解码成功！已复制到剪贴板', 'success');
+                navigator.clipboard.writeText(result);
+            } catch (e) {
+                showMessage(message, '解码失败: ' + e.message, 'error');
+                output.textContent = '';
+            }
+        }
+
+        function clearDecode() {
+            document.getElementById('decode-input').value = '';
+            document.getElementById('decode-output').textContent = '';
+            document.getElementById('decode-message').classList.remove('show');
+        }
+
+        // URL encoding
+        function encodeURL() {
+            const input = document.getElementById('encode-url-input').value;
+            const output = document.getElementById('encode-url-output');
+            const message = document.getElementById('encode-url-message');
+
+            if (!input) {
+                showMessage(message, '请输入要编码的URL', 'error');
+                output.textContent = '';
+                return;
+            }
+
+            try {
+                const result = urlCodec.encodeURL(input);
+                output.textContent = result;
+                showMessage(message, '编码成功！已复制到剪贴板', 'success');
+                navigator.clipboard.writeText(result);
+            } catch (e) {
+                showMessage(message, '编码失败: ' + e.message, 'error');
+                output.textContent = '';
+            }
+        }
+
+        function clearEncodeURL() {
+            document.getElementById('encode-url-input').value = '';
+            document.getElementById('encode-url-output').textContent = '';
+            document.getElementById('encode-url-message').classList.remove('show');
+        }
+
+        // URL decoding
+        function decodeURL() {
+            const input = document.getElementById('decode-url-input').value;
+            const output = document.getElementById('decode-url-output');
+            const message = document.getElementById('decode-url-message');
+
+            if (!input) {
+                showMessage(message, '请输入要解码的URL', 'error');
+                output.textContent = '';
+                return;
+            }
+
+            try {
+                const result = urlCodec.decodeURL(input);
+                output.textContent = result;
+                showMessage(message, '解码成功！已复制到剪贴板', 'success');
+                navigator.clipboard.writeText(result);
+            } catch (e) {
+                showMessage(message, '解码失败: ' + e.message, 'error');
+                output.textContent = '';
+            }
+        }
+
+        function clearDecodeURL() {
+            document.getElementById('decode-url-input').value = '';
+            document.getElementById('decode-url-output').textContent = '';
+            document.getElementById('decode-url-message').classList.remove('show');
+        }
+
+        // Helper function to show messages
+        function showMessage(element, text, type) {
+            element.textContent = text;
+            element.className = 'message show ' + type;
+            setTimeout(() => {
+                element.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
